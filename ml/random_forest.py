@@ -10,6 +10,7 @@ from sklearn.metrics import (
 )
 from sklearn.ensemble import RandomForestClassifier
 
+
 # =========================
 # BASE PROJECT PATH
 # =========================
@@ -20,7 +21,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # =========================
 INPUT_FILE = PROJECT_ROOT / "outputs" / "features1_ml_ready.csv"
 
-OUTPUT_DIR = PROJECT_ROOT / "outputs"
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "random_forest"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 PREDICTIONS_FILE = OUTPUT_DIR / "random_forest_predictions.csv"

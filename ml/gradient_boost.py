@@ -13,8 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # =========================
 # FILE PATHS
 # =========================
-PREDICTIONS_FILE = PROJECT_ROOT / "outputs" / "gradient_boost" / "gradient_boosting_predictions.csv"
-CLI_FILE = PROJECT_ROOT / "outputs" / "cli_3fps.csv"
+INPUT_FILE = PROJECT_ROOT / "outputs" / "features1_ml_ready.csv"
 
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "gradient_boost"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

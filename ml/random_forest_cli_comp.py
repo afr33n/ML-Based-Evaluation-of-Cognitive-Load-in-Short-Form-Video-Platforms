@@ -4,19 +4,25 @@ from pathlib import Path
 from scipy.stats import pearsonr, spearmanr
 
 # =========================
+# BASE PROJECT PATH
+# =========================
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# =========================
 # FILE PATHS
 # =========================
-PREDICTIONS_FILE = Path("/home/diya/Downloads/capstone/outputs/random_forest_predictions.csv")
-CLI_FILE = Path("/home/diya/Downloads/capstone/outputs/cli_3fps.csv")
-OUTPUT_DIR = Path("/home/diya/Downloads/capstone/outputs")
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+RF_DIR = PROJECT_ROOT / "outputs" / "random_forest"
+RF_DIR.mkdir(parents=True, exist_ok=True)
 
-MERGED_FILE = OUTPUT_DIR / "random_forest_cli_validation.csv"
-METRICS_FILE = OUTPUT_DIR / "random_forest_cli_metrics.txt"
-SCATTER_PLOT = OUTPUT_DIR / "random_forest_cli_scatter.png"
-BOX_PLOT = OUTPUT_DIR / "random_forest_cli_boxplot.png"
-CLASS_SUMMARY_FILE = OUTPUT_DIR / "random_forest_cli_class_summary.csv"
-CROSSTAB_FILE = OUTPUT_DIR / "random_forest_cli_crosstab.csv"
+PREDICTIONS_FILE = RF_DIR / "random_forest_predictions.csv"
+CLI_FILE = PROJECT_ROOT / "outputs" / "cli_3fps.csv"
+
+MERGED_FILE = RF_DIR / "random_forest_cli_validation.csv"
+METRICS_FILE = RF_DIR / "random_forest_cli_metrics.txt"
+SCATTER_PLOT = RF_DIR / "random_forest_cli_scatter.png"
+BOX_PLOT = RF_DIR / "random_forest_cli_boxplot.png"
+CLASS_SUMMARY_FILE = RF_DIR / "random_forest_cli_class_summary.csv"
+CROSSTAB_FILE = RF_DIR / "random_forest_cli_crosstab.csv"
 
 
 def merge_with_cli(pred_df: pd.DataFrame, cli_df: pd.DataFrame) -> pd.DataFrame:

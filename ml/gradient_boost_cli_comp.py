@@ -11,18 +11,18 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # =========================
 # FILE PATHS
 # =========================
-PREDICTIONS_FILE = PROJECT_ROOT / "outputs" / "gradient_boost" / "gradient_boosting_predictions.csv"
+GB_DIR = PROJECT_ROOT / "outputs" / "gradient_boost"
+GB_DIR.mkdir(parents=True, exist_ok=True)
+
+PREDICTIONS_FILE = GB_DIR / "gradient_boosting_predictions.csv"
 CLI_FILE = PROJECT_ROOT / "outputs" / "cli_3fps.csv"
 
-OUTPUT_DIR = PROJECT_ROOT / "outputs" / "gradient_boost"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-MERGED_FILE = OUTPUT_DIR / "gradient_boosting_cli_validation.csv"
-METRICS_FILE = OUTPUT_DIR / "gradient_boosting_cli_metrics.txt"
-SCATTER_PLOT = OUTPUT_DIR / "gradient_boosting_cli_scatter.png"
-BOX_PLOT = OUTPUT_DIR / "gradient_boosting_cli_boxplot.png"
-CLASS_SUMMARY_FILE = OUTPUT_DIR / "gradient_boosting_cli_class_summary.csv"
-CROSSTAB_FILE = OUTPUT_DIR / "gradient_boosting_cli_crosstab.csv"
+MERGED_FILE = GB_DIR / "gradient_boosting_cli_validation.csv"
+METRICS_FILE = GB_DIR / "gradient_boosting_cli_metrics.txt"
+SCATTER_PLOT = GB_DIR / "gradient_boosting_cli_scatter.png"
+BOX_PLOT = GB_DIR / "gradient_boosting_cli_boxplot.png"
+CLASS_SUMMARY_FILE = GB_DIR / "gradient_boosting_cli_class_summary.csv"
+CROSSTAB_FILE = GB_DIR / "gradient_boosting_cli_crosstab.csv"
 
 
 def merge_with_cli(pred_df: pd.DataFrame, cli_df: pd.DataFrame) -> pd.DataFrame:
@@ -68,6 +68,7 @@ def validate_against_cli(merged: pd.DataFrame) -> None:
         f.write("\n\nPredicted label vs CLI class:\n")
         f.write(crosstab.to_string())
 
+    # Scatter plot
     plt.figure(figsize=(7, 6))
     plt.scatter(merged["CLI"], merged["ml_risk_score"])
     plt.xlabel("CLI")
@@ -77,6 +78,7 @@ def validate_against_cli(merged: pd.DataFrame) -> None:
     plt.savefig(SCATTER_PLOT, dpi=200)
     plt.close()
 
+    # Box plot
     order = ["Low", "Medium", "High"]
     data = [merged.loc[merged["predicted_label"] == cls, "CLI"] for cls in order]
 
@@ -91,7 +93,7 @@ def validate_against_cli(merged: pd.DataFrame) -> None:
 
     merged.to_csv(MERGED_FILE, index=False)
 
-    print("\n================ CLI VALIDATION ================\n")
+    print("\n================ GRADIENT BOOST CLI VALIDATION ================\n")
     print(f"Pearson correlation: {pearson_corr:.4f}")
     print(f"Pearson p-value: {pearson_p:.6f}")
     print(f"Spearman correlation: {spearman_corr:.4f}")

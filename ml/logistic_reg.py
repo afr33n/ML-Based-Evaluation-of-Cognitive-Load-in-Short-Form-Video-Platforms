@@ -21,7 +21,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # =========================
 INPUT_FILE = PROJECT_ROOT / "outputs" / "features1_ml_ready.csv"
 
-OUTPUT_DIR = PROJECT_ROOT / "outputs"
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "logistic regression"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 FEATURES = [
@@ -98,6 +98,7 @@ def prepare_data():
         df.insert(0, "video_id", range(1, len(df) + 1))
 
     thresholds = compute_thresholds(df)
+    df = df.copy()
     df["risk_label"] = df.apply(assign_label, axis=1, thresholds=thresholds)
 
     X = df[FEATURES]

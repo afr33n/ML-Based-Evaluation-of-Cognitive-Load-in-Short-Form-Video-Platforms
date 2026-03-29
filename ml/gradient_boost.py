@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, f1_score
 
 # =========================
 # BASE PROJECT PATH
@@ -13,15 +13,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # =========================
 # FILE PATHS
 # =========================
+GB_DIR = PROJECT_ROOT / "outputs" / "gradient_boost"
+GB_DIR.mkdir(parents=True, exist_ok=True)
+
 INPUT_FILE = PROJECT_ROOT / "outputs" / "features1_ml_ready.csv"
 
-OUTPUT_DIR = PROJECT_ROOT / "outputs" / "gradient_boost"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-PREDICTIONS_FILE = OUTPUT_DIR / "gradient_boosting_predictions.csv"
-METRICS_FILE = OUTPUT_DIR / "gradient_boosting_model_metrics.txt"
-CONFUSION_MATRIX_PLOT = OUTPUT_DIR / "gradient_boosting_confusion_matrix.png"
-CLASSIFICATION_REPORT_CSV = OUTPUT_DIR / "gradient_boosting_classification_report.csv"
+PREDICTIONS_FILE = GB_DIR / "gradient_boosting_predictions.csv"
+METRICS_FILE = GB_DIR / "gradient_boosting_model_metrics.txt"
+CONFUSION_MATRIX_PLOT = GB_DIR / "gradient_boosting_confusion_matrix.png"
+CLASSIFICATION_REPORT_CSV = GB_DIR / "gradient_boosting_classification_report.csv"
 
 FEATURES = [
     "shot_rate",
@@ -129,10 +129,14 @@ def main():
     # Test predictions
     y_test_pred = model.predict(X_test)
     test_accuracy = accuracy_score(y_test, y_test_pred)
+    f1_macro = f1_score(y_test, y_test_pred, average="macro")
+    f1_weighted = f1_score(y_test, y_test_pred, average="weighted")
+
     report_text = classification_report(y_test, y_test_pred)
     report_dict = classification_report(y_test, y_test_pred, output_dict=True)
-    cm = confusion_matrix(y_test, y_test_pred)
+
     class_names = list(model.classes_)
+    cm = confusion_matrix(y_test, y_test_pred, labels=class_names)
 
     # Save classification report as CSV
     report_df = pd.DataFrame(report_dict).transpose()
@@ -159,7 +163,7 @@ def main():
     probs = model.predict_proba(X)
     preds = model.predict(X)
 
-    cols = ["video_id"] if "video_id" in df.columns else []
+    cols = ["video_id"]
     for c in ["id", "duration"]:
         if c in df.columns:
             cols.append(c)
@@ -183,7 +187,9 @@ def main():
     with open(METRICS_FILE, "w") as f:
         f.write("Gradient Boosting Model Evaluation\n")
         f.write("=================================\n\n")
-        f.write(f"Test Accuracy: {test_accuracy:.4f}\n\n")
+        f.write(f"Test Accuracy: {test_accuracy:.4f}\n")
+        f.write(f"F1 Macro: {f1_macro:.4f}\n")
+        f.write(f"F1 Weighted: {f1_weighted:.4f}\n\n")
         f.write("5-Fold Cross-Validation Accuracy Scores:\n")
         f.write(", ".join(f"{score:.4f}" for score in cv_scores))
         f.write(f"\nMean CV Accuracy: {cv_scores.mean():.4f}\n")
@@ -191,11 +197,13 @@ def main():
         f.write("Classification Report:\n")
         f.write(report_text)
         f.write("\nConfusion Matrix:\n")
-        f.write(str(cm))
+        f.write(pd.DataFrame(cm, index=class_names, columns=class_names).to_string())
 
     # Print directly
-    print("\n================ MODEL PERFORMANCE ================\n")
+    print("\n================ GRADIENT BOOSTING MODEL PERFORMANCE ================\n")
     print(f"Test Accuracy: {test_accuracy:.4f}")
+    print(f"F1 Macro: {f1_macro:.4f}")
+    print(f"F1 Weighted: {f1_weighted:.4f}")
     print("5-Fold CV Accuracy Scores:", ", ".join(f"{score:.4f}" for score in cv_scores))
     print(f"Mean CV Accuracy: {cv_scores.mean():.4f}")
     print(f"Std CV Accuracy: {cv_scores.std():.4f}")
@@ -204,7 +212,7 @@ def main():
     print(report_text)
 
     print("\nConfusion Matrix:\n")
-    print(cm)
+    print(pd.DataFrame(cm, index=class_names, columns=class_names))
 
     print("\nSaved files:")
     print(f"- Predictions: {PREDICTIONS_FILE}")

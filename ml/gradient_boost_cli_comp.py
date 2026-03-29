@@ -4,11 +4,17 @@ from pathlib import Path
 from scipy.stats import pearsonr, spearmanr
 
 # =========================
+# BASE PROJECT PATH
+# =========================
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# =========================
 # FILE PATHS
 # =========================
-PREDICTIONS_FILE = Path("/home/diya/Downloads/capstone/outputs/gradient_boosting_predictions.csv")
-CLI_FILE = Path("/home/diya/Downloads/capstone/outputs/cli_3fps.csv")
-OUTPUT_DIR = Path("/home/diya/Downloads/capstone/outputs")
+PREDICTIONS_FILE = PROJECT_ROOT / "outputs" / "gradient_boost" / "gradient_boosting_predictions.csv"
+CLI_FILE = PROJECT_ROOT / "outputs" / "cli_3fps.csv"
+
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "gradient_boost"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MERGED_FILE = OUTPUT_DIR / "gradient_boosting_cli_validation.csv"

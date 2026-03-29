@@ -11,8 +11,17 @@ from sklearn.metrics import (
 )
 from sklearn.linear_model import LogisticRegression
 
-INPUT_FILE = Path("/home/diya/Downloads/capstone/outputs/features1_ml_ready.csv")
-OUTPUT_DIR = Path("/home/diya/Downloads/capstone/outputs")
+# =========================
+# BASE PROJECT PATH
+# =========================
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# =========================
+# FILE PATHS
+# =========================
+INPUT_FILE = PROJECT_ROOT / "outputs" / "features1_ml_ready.csv"
+
+OUTPUT_DIR = PROJECT_ROOT / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 FEATURES = [

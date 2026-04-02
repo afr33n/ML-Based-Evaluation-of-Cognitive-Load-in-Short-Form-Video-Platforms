@@ -1,0 +1,153 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+from scipy.stats import spearmanr
+
+# =========================
+# BASE PATH
+# =========================
+PROJECT_ROOT = Path(__file__).resolve()
+
+while not (PROJECT_ROOT / "outputs").exists():
+    PROJECT_ROOT = PROJECT_ROOT.parent
+
+print("Detected project root:", PROJECT_ROOT)
+
+MODEL_NAME = "random_forest"   # change to "random_forest" if needed
+
+# =========================
+# FILE PATHS
+# =========================
+ML_FILE = PROJECT_ROOT / "outputs" / MODEL_NAME / "random_forest_predictions.csv"
+TREND_FILE = PROJECT_ROOT / "Data" /"archive"/"youtube_shorts_tiktok_trends_2025.csv_ML.csv"
+
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / MODEL_NAME
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+SUMMARY_FILE = OUTPUT_DIR / f"{MODEL_NAME}_engagement_validation.txt"
+QUANTILE_PLOT = OUTPUT_DIR / f"{MODEL_NAME}_engagement_quantile.png"
+
+# =========================
+# LOAD DATA
+# =========================
+ml_df = pd.read_csv(ML_FILE)
+trend_df = pd.read_csv(TREND_FILE)
+
+# =========================
+# KEEP ONLY NEEDED ENGAGEMENT COLUMNS
+# =========================
+needed_cols = [
+    "like_rate",
+    "comment_rate",
+    "share_rate",
+    "rel_like",
+    "rel_share",
+    "rel_combo"
+]
+
+available_cols = [c for c in needed_cols if c in trend_df.columns]
+
+if not available_cols:
+    raise ValueError("No required engagement columns found in trends dataset.")
+
+trend_df = trend_df[available_cols].copy()
+
+# =========================
+# CLEAN NUMERIC DATA
+# =========================
+for col in trend_df.columns:
+    trend_df[col] = pd.to_numeric(trend_df[col], errors="coerce")
+
+trend_df = trend_df.replace([np.inf, -np.inf], np.nan).dropna().copy()
+
+if trend_df.empty:
+    raise ValueError("Trend dataset is empty after cleaning.")
+
+# =========================
+# NORMALIZATION FUNCTION
+# =========================
+def norm(series):
+    mn = series.min()
+    mx = series.max()
+    if mx == mn:
+        return pd.Series(np.zeros(len(series)), index=series.index)
+    return (series - mn) / (mx - mn)
+
+# =========================
+# BUILD SIMPLE BEHAVIOR SCORE
+# =========================
+trend_df["behavior_score"] = (
+    0.25 * norm(trend_df["like_rate"]) +
+    0.20 * norm(trend_df["comment_rate"]) +
+    0.25 * norm(trend_df["share_rate"]) +
+    0.10 * norm(trend_df["rel_like"]) +
+    0.10 * norm(trend_df["rel_share"]) +
+    0.10 * norm(trend_df["rel_combo"])
+)
+
+# =========================
+# GET ML SCORE COLUMN
+# =========================
+score_candidates = [c for c in ml_df.columns if "score" in c.lower()]
+if not score_candidates:
+    raise ValueError("No ML score column found in prediction file.")
+
+ml_score_col = score_candidates[0]
+ml_scores = pd.to_numeric(ml_df[ml_score_col], errors="coerce")
+ml_scores = ml_scores.replace([np.inf, -np.inf], np.nan).dropna()
+
+if ml_scores.empty:
+    raise ValueError("ML scores are empty after cleaning.")
+
+# =========================
+# STANDARDIZE BOTH
+# =========================
+def zscore(series):
+    std = series.std()
+    if std == 0 or pd.isna(std):
+        return pd.Series(np.zeros(len(series)), index=series.index)
+    return (series - series.mean()) / std
+
+ml_z = zscore(ml_scores)
+eng_z = zscore(trend_df["behavior_score"])
+
+# =========================
+# QUANTILE COMPARISON
+# =========================
+q = np.linspace(0.05, 0.95, 19)
+ml_q = np.quantile(ml_z, q)
+eng_q = np.quantile(eng_z, q)
+
+spearman_corr, spearman_p = spearmanr(ml_q, eng_q)
+
+# =========================
+# PLOT
+# =========================
+plt.figure(figsize=(8, 6))
+plt.plot(q, ml_q, marker="o", label="ML Score")
+plt.plot(q, eng_q, marker="o", label="Behavior Score")
+plt.xlabel("Quantile")
+plt.ylabel("Standardized Value")
+plt.title("ML Score vs Engagement-Based Behavior Score")
+plt.legend()
+plt.tight_layout()
+plt.savefig(QUANTILE_PLOT, dpi=300)
+plt.close()
+
+# =========================
+# SAVE SUMMARY
+# =========================
+with open(SUMMARY_FILE, "w", encoding="utf-8") as f:
+    f.write(f"ML file: {ML_FILE}\n")
+    f.write(f"Trend file: {TREND_FILE}\n")
+    f.write(f"ML score column used: {ml_score_col}\n")
+    f.write(f"Engagement columns used: {available_cols}\n\n")
+    f.write("Validation type: Distribution-level supporting validation\n")
+    f.write("Note: This does not validate individual scores. It only checks whether the ML scoring system shows a similar overall pattern to engagement-based behavior.\n\n")
+    f.write(f"Spearman correlation (quantiles): {spearman_corr:.4f}\n")
+    f.write(f"Spearman p-value: {spearman_p:.6f}\n")
+
+print("Validation complete.")
+print("Summary saved to:", SUMMARY_FILE)
+print("Quantile plot saved to:", QUANTILE_PLOT)

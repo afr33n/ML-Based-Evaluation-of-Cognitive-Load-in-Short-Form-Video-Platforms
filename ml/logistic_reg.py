@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 # =========================
 # FILE PATHS
 # =========================
-INPUT_FILE = PROJECT_ROOT / "outputs" / "features1_ml_ready.csv"
+INPUT_FILE = PROJECT_ROOT / "outputs" / "features_ml_ready.csv"
 
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "logistic regression"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

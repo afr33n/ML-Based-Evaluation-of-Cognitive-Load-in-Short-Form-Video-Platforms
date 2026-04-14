@@ -2,7 +2,7 @@ import pandas as pd
 from pathlib import Path
 
 # Input file
-INPUT_FILE = Path("/home/diya/Downloads/capstone/outputs/features1_norm.csv")
+INPUT_FILE = Path("/home/diya/Downloads/capstone/outputs/features_norm.csv")
 
 # Output file in the same folder
 OUTPUT_FILE = INPUT_FILE.parent / "features1_ml_ready.csv"
